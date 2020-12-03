@@ -94,9 +94,8 @@ int Mine::check_the_number(int x, int y){
 	return p;
 }
 bool Mine::is_valid(int x, int y){
-	if(x>this->x||y>this->y||x<=0||y<=0||this->blocks[x][y]=='X'){
+	if(x>this->x||y>this->y||x<=0||y<=0||this->blocks[x][y]=='X')
 		return false;
-	}
 	return true;
 }
 void Mine::show(){
