@@ -83,17 +83,15 @@ bool Mine::open(int x, int y){
 }
 int Mine::check_the_number(int x, int y){
 	int p=0;
-	if(this->blocks[x-1][y]=='B'&&is_valid(x-1,y)) p++;
-	else if(this->blocks[x+1][y]=='B'&&is_valid(x+1,y)) p++;
-	else if(this->blocks[x][y-1]=='B'&&is_valid(x,y-1)) p++;
-	else if(this->blocks[x][y+1]=='B'&&is_valid(x,y+1)) p++;
-	else if(this->blocks[x-1][y-1]=='B'&&is_valid(x-1,y-1)) p++;
-	else if(this->blocks[x-1][y+1]=='B'&&is_valid(x-1,y+1)) p++;
-	else if(this->blocks[x+1][y-1]=='B'&&is_valid(x+1,y-1)) p++;
-	else if(this->blocks[x+1][y+1]=='B'&&is_valid(x+1,y+1)) p++;
+	for(int i=-1;i<=1;i++){
+		for(int j=-1;j<=1;j++){
+			if(i==0&&j==0) continue;
+			if(this->blocks[x+i][y+j]=='B') p++;
+		}
+	}
 	return p;
 }
-bool Mine::is_valid(int x, int y){
+bool Mine::is_valid(int x, int y){	
 	if(x>this->x||y>this->y||x<=0||y<=0||this->blocks[x][y]=='X')
 		return false;
 	return true;
