@@ -41,8 +41,8 @@ void Mine::initialize() {
 	}
 	random_device rd;
 	mt19937 gen(rd());
-	uniform_int_distribution<int> rx(1, x);
-	uniform_int_distribution<int> ry(1, y);
+	uniform_int_distribution<int> rx(0, x-1);
+	uniform_int_distribution<int> ry(0, y-1);
 	for(int i=0;i<this->bomb;i++){
 		b_x = rx(gen);	
 		b_y = ry(gen);
