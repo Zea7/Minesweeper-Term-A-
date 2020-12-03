@@ -14,12 +14,13 @@ public:
 		this->blocked = bk;
 		this->show_bomb = b;
 	}
-	void open(int x, int y);
+	bool open(int x, int y);
 	void mark(int x, int y);
 	void show_hint();
 	void show();
 	void game();
-	void check_the_number(int x, int y);
+	bool is_valid(int x, int y);
+	int check_the_number(int x, int y);
 	void initialize();
 private:
 	int x;
@@ -30,6 +31,7 @@ private:
 	int blocked;
 	char** blocks;
 	char** board;
+	void open_stack(int x, int y);
 };
 void Mine::initialize() {
 	int x = this->x;
@@ -63,7 +65,39 @@ void Mine::initialize() {
 			else this->board[x][y] = 'O';
 		}
 	}
-
+}
+bool Mine::open(int x, int y){
+	if(this->blocks[x][y]=='B'){
+		this->board[x][y]='B';
+		show();
+		return false;
+	}
+	else{
+		if(check_the_number(x,y)==0) open_stack(x,y);
+		else{
+			this->board[x][y] = check_the_number(x,y)+15;
+			show();
+		}
+	}
+	return true;
+}
+int Mine::check_the_number(int x, int y){
+	int p=0;
+	if(this->blocks[x-1][y]=='B'&&is_valid(x-1,y)) p++;
+	else if(this->blocks[x+1][y]=='B'&&is_valid(x+1,y)) p++;
+	else if(this->blocks[x][y-1]=='B'&&is_valid(x,y-1)) p++;
+	else if(this->blocks[x][y+1]=='B'&&is_valid(x,y+1)) p++;
+	else if(this->blocks[x-1][y-1]=='B'&&is_valid(x-1,y-1)) p++;
+	else if(this->blocks[x-1][y+1]=='B'&&is_valid(x-1,y+1)) p++;
+	else if(this->blocks[x+1][y-1]=='B'&&is_valid(x+1,y-1)) p++;
+	else if(this->blocks[x+1][y+1]=='B'&&is_valid(x+1,y+1)) p++;
+	return p;
+}
+bool Mine::is_valid(int x, int y){
+	if(x>this->x||y>this->y||x<=0||y<=0||this->blocks[x][y]=='X'){
+		return false;
+	}
+	return true;
 }
 void Mine::show(){
 	printf("Bombs left = %d, Hints left = %d;\n",this->show_bomb,this->hint);
