@@ -64,7 +64,7 @@ private:
 	void open_stack(int x, int y);
 	mineNode n = mineNode();
 };
-void start_game();
+void start_game();	
 
 void mineNode::add(Node* n) {
 	if (this->length == 0) {

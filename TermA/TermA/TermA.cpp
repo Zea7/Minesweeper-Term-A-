@@ -186,7 +186,7 @@ void Mine::show() {
 }
 void Mine::game() {
 	if (bomb == 0 && m == show_bomb) {
-		cout << "You Win!!!!!!!!" << endl;
+		cout << "Success!" << endl;
 		cout << "Congratuation." << endl;
 		this->show_bomb = 0;
 		this->show();
