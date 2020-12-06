@@ -18,6 +18,7 @@ public:
 	void print();
 	bool find(int x, int y);
 };
+
 class Mine {
 public:
 	Mine() {
@@ -48,6 +49,7 @@ public:
 	bool is_valid(int x, int y);
 	int check_the_number(int x, int y);
 	void initialize();
+	void start();
 private:
 	int x;
 	int y;
@@ -58,10 +60,11 @@ private:
 	int blocked;
 	char** blocks;
 	char** board;
+	int k = 0;
 	void open_stack(int x, int y);
 	mineNode n = mineNode();
 };
-
+void start_game();
 
 void mineNode::add(Node* n) {
 	if (this->length == 0) {

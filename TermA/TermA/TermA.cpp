@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <random>
 #include "TermA.h"
+#include <queue>
+#include <utility>
 #pragma warning(disable: 4996)
 using namespace std;
 
@@ -30,13 +32,6 @@ void Mine::initialize() {
 		}
 	}
 	
-	for (int i = 0; i < this->bomb;i++) {
-		uniform_int_distribution<int> r(1, this->n.length);
-		int x = r(gen);
-		Node p = this->n.ele(x);
-		this->n.del(p.x, p.y);
-		this->blocks[p.x][p.y] = 'B';
-	}
 	
 	for (int i = 0; i < this->blocked;i++ ) {
 		uniform_int_distribution<int> r(1, this->n.length);
@@ -57,6 +52,17 @@ void Mine::initialize() {
 	}
 
 }
+void Mine::start() {
+	random_device rd;
+	mt19937 gen(rd());
+	for (int i = 0; i < this->bomb; i++) {
+		uniform_int_distribution<int> r(1, this->n.length);
+		int x = r(gen);
+		Node p = this->n.ele(x);
+		this->n.del(p.x, p.y);
+		this->blocks[p.x][p.y] = 'B';
+	}
+}
 void Mine::open(int x, int y) {
 	int p;
 	if (this->blocks[x][y] == 'B') {
@@ -67,6 +73,10 @@ void Mine::open(int x, int y) {
 		}
 		this->show();
 		cout << "You lose!"<<endl;
+		cout << "You have lost the game. Wanna play more? (y/n)" << endl;
+		char y;
+		cin >> y;
+		if (y == 'y') return start_game();
 		exit(0);
 	}
 	else {
@@ -75,6 +85,10 @@ void Mine::open(int x, int y) {
 			return this->game();
 		}
 		this->n.del(x, y);
+		if (k == 0) {
+			this->start();
+			k++;
+		}
 		if ((p = check_the_number(x, y)) == 0) return this->open_stack(x,y);
 		else {
 			this->board[x][y] = p + 48;
@@ -83,8 +97,27 @@ void Mine::open(int x, int y) {
 	return this->game();
 }
 void Mine::open_stack(int x, int y) {
-	this->board[x][y] == '0';
-
+	this->board[x][y] = '0';
+	queue<pair<int,int>> q;
+	q.push(pair<int, int>(x, y));
+	int x_, y_;
+	while (!q.empty()) {
+		pair<int, int> r = q.front();
+		x_ = r.first;
+		y_ = r.second;
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				if (!is_valid((x_ + i), (y_ + j))) continue;
+				if (this->check_the_number((x_ + i), (y_ + j)) == 0&&this->n.find((x_+i),(y_+j))) 
+					q.push(pair<int, int>((x_ + i), (y_ + j)));
+				
+				this->board[(x_ + i)][(y_ + j)] = this->check_the_number((x_ + i), (y_ + j)) + 48;
+				this->n.del((x_ + i), (y_ + j));
+			}
+		}
+		q.pop();
+	}
+	this->game();
 }
 void Mine::mark(int x, int y) {
 	if (this->board[x][y] == 'O') {
@@ -112,7 +145,6 @@ void Mine::show_hint() {
 	uniform_int_distribution<int>r(1, this->n.length);
 	int x = r(gen);
 	Node p = this->n.ele(x);
-	this->n.del(p.x, p.y);
 	printf("We opened (%d,%d) for you.\n", p.x+1, p.y+1);
 	hint--;
 	this->open(p.x, p.y);
@@ -153,6 +185,17 @@ void Mine::show() {
 	cout << "----------------------" << endl;
 }
 void Mine::game() {
+	if (bomb == 0 && m == show_bomb) {
+		cout << "You Win!!!!!!!!" << endl;
+		cout << "Congratuation." << endl;
+		this->show_bomb = 0;
+		this->show();
+		cout << "You have won the game. Wanna play more? (y/n)" << endl;
+		char y;
+		cin >> y;
+		if (y == 'y') return start_game();
+		return;
+	}
 	int x, y;
 	char e;
 	this->show();
@@ -171,18 +214,16 @@ void Mine::game() {
 	else if (e == 'o') return this->open(x, y);
 	else if (e == 'm') return this->mark(x, y);
 	else if (e == 'h') return this->show_hint();
-	if (bomb == 0&&m==show_bomb) {
-		cout << "You Win!!!!!!!!" << endl;
-		cout << "Congratuation." << endl;
-		this->show_bomb = 0;
-		this->show();
-	}
+	
 	return;
 
 }
-int main() {
-
+void start_game() {
 	Mine m = Mine();
 	m.initialize();
 	m.game();
+}
+int main() {
+	start_game();
+	
 }
