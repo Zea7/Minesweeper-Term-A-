@@ -1,88 +1,49 @@
 ﻿#include <iostream>
 #include <stdlib.h>
 #include <random>
+#include "TermA.h"
 #pragma warning(disable: 4996)
 using namespace std;
 
-class Mine {
-public:
-	Mine() {
-		int x,  y,  b, h, bk;
-		cout << "### Minesweeper ###" << endl;
-		cout << "Size (x) : ";
-		cin >> x;
-		cout << "Size (y) : ";
-		cin >> y;
-		cout << "Total number of bombs (b<xy) : ";
-		cin >> b;
-		cout << "Total number of hints (<xy) : ";
-		cin >> h;
-		cout << "Total number of blocked squares (<xy-b) : ";
-		cin >> bk;
-		this->x = x;
-		this->y = y;
-		this->bomb = b;
-		this->hint = h;
-		this->blocked = bk;
-		this->show_bomb = b;
-	}
-	void open(int x, int y);
-	void mark(int x, int y);
-	void show_hint();
-	void show();
-	void game();
-	bool is_valid(int x, int y);
-	int check_the_number(int x, int y);
-	void initialize();
-private:
-	int x;
-	int y;
-	int bomb;
-	int show_bomb;
-	int hint;
-	int blocked;
-	char** blocks;
-	char** board;
-	void open_stack(int x, int y);
-};
 void Mine::initialize() {
 	if (this->bomb >= (this->x) * (this->y) || this->blocked >= (this->x) * (this->y) - this->bomb) {
-		cout << "Wrong input.";
+		cout << "Wrong input."<<endl;
 		*this= Mine();
 		return initialize();
 	}
 	int x = this->x;
 	int y = this->y;
-	int b_x, b_y;
 	this->blocks = new char* [x];
 	for (int i = 0; i < x; i++) {
 		this->blocks[i] = new char[y];
 	}
 	random_device rd;
 	mt19937 gen(rd());
-	uniform_int_distribution<int> rx(0, (x - 1));
-	uniform_int_distribution<int> ry(0, (y - 1));
+
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y; j++) {
 			this->blocks[i][j] = 'O';
+			Node* a = new Node();
+			*a = { i,j,NULL };
+			this->n.add(a);
+
 		}
 	}
-	for (int i = 0; i < this->bomb;) {
-		b_x = rx(gen);
-		b_y = ry(gen);
-		if (this->blocks[b_x][b_y] != 'B') {
-			this->blocks[b_x][b_y] = 'B';
-			i++;
-		}
+	
+	for (int i = 0; i < this->bomb;i++) {
+		uniform_int_distribution<int> r(1, this->n.length);
+		int x = r(gen);
+		Node p = this->n.ele(x);
+		this->n.del(p.x, p.y);
+		this->blocks[p.x][p.y] = 'B';
 	}
-	for (int i = 0; i < this->blocked; ) {
-		b_x = rx(gen);
-		b_y = ry(gen);
-		if (this->blocks[b_x][b_y] != 'B'&&this->blocks[b_x][b_y]!='X') {
-			this->blocks[b_x][b_y] = 'X';
-			i++;
-		}
-		else continue;
+	
+	for (int i = 0; i < this->blocked;i++ ) {
+		uniform_int_distribution<int> r(1, this->n.length);
+		int x = r(gen);
+		Node p = this->n.ele(x);
+		this->n.del(p.x, p.y);
+		this->blocks[p.x][p.y] = 'X';
 	}
 	this->board = new char* [x];
 	for (int i = 0; i < x; i++) {
@@ -99,17 +60,22 @@ void Mine::initialize() {
 void Mine::open(int x, int y) {
 	int p;
 	if (this->blocks[x][y] == 'B') {
-		for (int i = 0; i < x; i++) {
-			for (int j = 0; j < y; j++) {
+		for (int i = 0; i < this->x; i++) {
+			for (int j = 0; j < this->y; j++) {
 				if (this->blocks[i][j] == 'B') this->board[i][j] = 'B';
 			}
 		}
 		this->show();
-		cout << "You lose!";
-		return ;
+		cout << "You lose!"<<endl;
+		exit(0);
 	}
 	else {
-		if ((p = check_the_number(x, y)) == 0) this->board[x][y]='0';
+		if (!this->n.find(x, y)) {
+			cout << "You already opened it." << endl;
+			return this->game();
+		}
+		this->n.del(x, y);
+		if ((p = check_the_number(x, y)) == 0) return this->open_stack(x,y);
 		else {
 			this->board[x][y] = p + 48;
 		}
@@ -117,16 +83,19 @@ void Mine::open(int x, int y) {
 	return this->game();
 }
 void Mine::open_stack(int x, int y) {
-	this->board[x][y] = check_the_number(x, y) + 48;
+	this->board[x][y] == '0';
+
 }
 void Mine::mark(int x, int y) {
 	if (this->board[x][y] == 'O') {
-		this->board[x][y] = 'M';
+		this->board[x][y] = 'm';
+		m++;
 		if(this->blocks[x][y]=='B')
 			this->bomb--;
 	}
-	else if (this->board[x][y] == 'M') {
+	else if (this->board[x][y] == 'm') {
 		this->board[x][y] = 'O';
+		m--;
 		if(this->blocks[x][y]=='B')
 			this->bomb++;
 	}
@@ -134,7 +103,19 @@ void Mine::mark(int x, int y) {
 
 }
 void Mine::show_hint() {
-
+	if (hint == 0) {
+		cout << "You used all chance." << endl;
+		return this->game();
+	}
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_int_distribution<int>r(1, this->n.length);
+	int x = r(gen);
+	Node p = this->n.ele(x);
+	this->n.del(p.x, p.y);
+	printf("We opened (%d,%d) for you.\n", p.x+1, p.y+1);
+	hint--;
+	this->open(p.x, p.y);
 }
 int Mine::check_the_number(int x, int y) {
 	int p = 0;
@@ -190,9 +171,10 @@ void Mine::game() {
 	else if (e == 'o') return this->open(x, y);
 	else if (e == 'm') return this->mark(x, y);
 	else if (e == 'h') return this->show_hint();
-	if (bomb == 0) {
+	if (bomb == 0&&m==show_bomb) {
 		cout << "You Win!!!!!!!!" << endl;
 		cout << "Congratuation." << endl;
+		this->show_bomb = 0;
 		this->show();
 	}
 	return;
